@@ -59,30 +59,12 @@ const sampleTree = {
     which: new LibNode("which", "3.0.1", {}),
   });
   console.log(crossSpawnTree);
-  console.log(JSON.stringify(crossSpawnTree, null, 2));
-
-  // crossSpawnTree.root =  {
-  //   "path-key": {
-  //     version: "1.0.0",
-  //     deps: {},
-  //   },
-  //   "shebang-command": {
-  //     version: "2.0.0",
-  //     deps: {},
-  //   },
-  //   which: {
-  //     version: "3.0.1",
-  //     deps: {},
-  //   },
-
-  //   version: "2.0.0"
-  // },
-
   // console.log(JSON.stringify(crossSpawnTree, null, 2));
+
 
   const depsObj_1 = crossSpawnTree.root.deps;
   for (const dep in depsObj_1) {
-    const nestedDeps_2 = asyncGetDep(dep, depsObj_1.version);
+    const nestedDeps_2 = await asyncGetDep(dep, depsObj_1.version);
     if (Object.keys(nestedDeps_2).length === 0) {
       console.log("2nd 0 deps");
      
@@ -99,6 +81,12 @@ const sampleTree = {
         //consider case for 1+ deps
 
         const nestedDepsObj = depsObj_1[dep]["deps"];
+
+        console.log(
+          `prop ${name} alr E: `,
+          nestedDepsObj.hasOwnProperty(name)
+        );
+
         //default: writable, configurable, enumerable: false
         Object.defineProperty(nestedDepsObj, name, {
           value: new LibNode(name, version, {}),
@@ -111,7 +99,7 @@ const sampleTree = {
         // nestedDepsObj[name] = new LibNode(name, version, {})
 
 
-        const nestedDeps_3 = asyncGetDep(innerDep, version);
+        const nestedDeps_3 = await asyncGetDep(innerDep, version);
 
         if (Object.keys(nestedDeps_3).length === 0) {
           console.log("3rd 0 deps");
@@ -123,6 +111,11 @@ const sampleTree = {
             const version = nestedDeps_3[anotherInnerDep];
 
             const nestedDepsObj = depsObj_1[dep]["deps"][innerDep]["deps"]
+
+            console.log(
+              `prop ${name} alr E: `,
+              nestedDepsObj.hasOwnProperty(name)
+            );
             nestedDepsObj[name] = new LibNode(name, version, {});
           }
         }
@@ -138,7 +131,7 @@ const sampleTree = {
  * @param {string} name
  * @param {string} version
  */
-function asyncGetDep(name, version) {
+async function asyncGetDep(name, version) {
   //async fetch to axios /name/version
 
   let deps = {};
@@ -169,18 +162,18 @@ function asyncGetDep(name, version) {
         exe: "0.2.0",
       };
       break;
-    
+
     case "another-isexe":
-         //nu dep
+      //nu dep
       break;
 
     case "regex-extra":
       deps = {
         regex: "12.0.0",
         extra: "10.0.0",
+        // extreme: "10.0.0",
       };
 
-    
       break;
   }
 

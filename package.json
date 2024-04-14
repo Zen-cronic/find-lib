@@ -1,10 +1,10 @@
 {
-  "name": "npm-dep-start",
+  "name": "find-lib",
   "version": "0.0.1",
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "nodemon test/test.js",
     "dev": "nodemon"
   },
   "keywords": [],
@@ -12,6 +12,7 @@
   "license": "ISC",
   "devDependencies": {
     "axios": "^1.6.8",
-    "nodemon": "^3.1.0"
+    "nodemon": "^3.1.0",
+    "scope-logger": "^1.1.0"
   }
 }

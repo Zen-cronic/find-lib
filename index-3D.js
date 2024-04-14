@@ -1,4 +1,5 @@
-// index-3B upgrade to recursion
+//reW index-3C recursion
+"use strict";
 
 class LibTree {
   //deps provided only for rootNode
@@ -18,30 +19,6 @@ class LibNode {
     this.name = name;
   }
 }
-
-const origTree = {
-  root: {
-    deps: {
-      "path-key": {
-        deps: {},
-        version: "1.0.0",
-        name: "path-key",
-      },
-      "shebang-command": {
-        deps: {},
-        version: "2.0.0",
-        name: "shebang-command",
-      },
-      which: {
-        deps: {},
-        version: "3.0.1",
-        name: "which",
-      },
-    },
-    version: "3.2.4",
-    name: "cross-spawn",
-  },
-};
 
 const modifiedTree = {
   root: {
@@ -122,47 +99,64 @@ const modifiedTree = {
   });
   console.log(crossSpawnTree);
   //   console.log(JSON.stringify(crossSpawnTree, null, 2));
-
+  let i = 1;
   const depsObj_1 = crossSpawnTree.root.deps;
-  for (const dep in depsObj_1) {
-    const name = dep
-    const version = depsObj_1[dep].version
-    console.log("name and version from 1st layer: ", name, version);
-    await addNodes(name, version, depsObj_1);
-  }
+  await addNodes(depsObj_1);
 
-  async function addNodes(outerName, outerVersion, outerDepsObj) {
-    //   const name = dep;
-    //   const version = depsObj.version;
-    const nestedDeps_2 = await asyncGetDep(outerName, outerVersion);
-    if (Object.keys(nestedDeps_2).length === 0) {
-      console.log("2nd 0 deps");
-    } else {
-      console.log({ nestedDeps_2 });
+  async function addNodes(outerDeps, tryName = "") {
+    for (const dep in outerDeps) {
+      const outerName = dep;
+      const outerVersion = outerDeps[dep].version;
+      console.log("name and version from 1st layer: ", outerName, outerVersion);
+      //   await addNodes(name, version, depsObj_1);
 
-      for (const innerDep in nestedDeps_2) {
-        const name = innerDep;
-        const version = nestedDeps_2[innerDep];
-        // console.log("name and version from for: ", name, version);
-        // console.log("depsObj: ", depsObj);
+      const apiDeps = await asyncGetDep(outerName, outerVersion);
+      if (Object.keys(apiDeps).length === 0) {
+        console.log("2nd 0 deps");
+        // break
+        // return
+        continue;
+      } else {
+        console.log({ apiDeps });
 
-        //   let n estedDepsObj = depsObj[name]["deps"]
-        const nestedDepsObj = outerDepsObj[outerName]["deps"];
+        for (const innerDep in apiDeps) {
+          const name = innerDep;
+          const version = apiDeps[innerDep];
 
-                // !!layer nu need cuz nestedDepsObj travers the nested layers
-        //   if(layer > 0){
-        //     nestedDepsObj = nestedDepsObj[name]["deps"]
-        //   }
-        
-        //default: writable, configurable, enumerable: false
-        Object.defineProperty(nestedDepsObj, name, {
-          value: new LibNode(name, version, {}),
-          writable: false,
-          configurable: false,
-          enumerable: true,
-        });
+          //   let n estedDepsObj = depsObj[name]["deps"]
+          //   const nestedDepsObj = outerDeps[outerName]["deps"];
+          let nestedDepsObj;
+          if (i === 1) {
+            tryName = outerName;
+            i++;
+          }
+          nestedDepsObj = outerDeps[tryName]["deps"];
 
-        await addNodes(name, version, nestedDepsObj);
+          // !!layer nu need cuz nestedDepsObj travers the nested layers
+          // for(let i = 0; i< layer; i++){
+          // nestedDepsObj = nestedDepsObj[name]["deps"];
+
+          // }
+
+          //   nestedDepsObj = nestedDepsObj[name]["deps"]
+
+          console.log(
+            `prop ${name} alr E: `,
+            nestedDepsObj.hasOwnProperty(name)
+          );
+          if (!nestedDepsObj.hasOwnProperty(name)) {
+            Object.defineProperty(nestedDepsObj, name, {
+              value: new LibNode(name, version, {}),
+              writable: false, //Err: false
+              // writable: true,  //Err: false
+              configurable: false,
+              enumerable: true,
+            });
+          }
+          //   nestedDepsObj[name] = new LibNode(name, version, {});
+
+          await addNodes(nestedDepsObj, outerName);
+        }
       }
     }
   }
@@ -216,6 +210,7 @@ async function asyncGetDep(name, version) {
       deps = {
         regex: "12.0.0",
         extra: "10.0.0",
+        // extreme: "10.0.0",
       };
 
       break;
