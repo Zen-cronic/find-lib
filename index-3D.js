@@ -99,11 +99,12 @@ const modifiedTree = {
   });
   console.log(crossSpawnTree);
   //   console.log(JSON.stringify(crossSpawnTree, null, 2));
-  let i = 1;
   const depsObj_1 = crossSpawnTree.root.deps;
+
+  let i = 1;
   await addNodes(depsObj_1);
 
-  async function addNodes(outerDeps, tryName = "") {
+  async function addNodes(outerDeps, idx = 1) {
     for (const dep in outerDeps) {
       const outerName = dep;
       const outerVersion = outerDeps[dep].version;
@@ -111,7 +112,11 @@ const modifiedTree = {
       //   await addNodes(name, version, depsObj_1);
 
       const apiDeps = await asyncGetDep(outerName, outerVersion);
-      if (Object.keys(apiDeps).length === 0) {
+      if (
+        Object.keys(apiDeps).length === 0 ||
+        Object.keys(apiDeps).length ===
+          Object.keys(outerDeps[outerName]["deps"]).length
+      ) {
         console.log("2nd 0 deps");
         // break
         // return
@@ -124,14 +129,7 @@ const modifiedTree = {
           const version = apiDeps[innerDep];
 
           //   let n estedDepsObj = depsObj[name]["deps"]
-          //   const nestedDepsObj = outerDeps[outerName]["deps"];
-          let nestedDepsObj;
-          if (i === 1) {
-            tryName = outerName;
-            i++;
-          }
-          nestedDepsObj = outerDeps[tryName]["deps"];
-
+          const nestedDepsObj = outerDeps[outerName]["deps"];
           // !!layer nu need cuz nestedDepsObj travers the nested layers
           // for(let i = 0; i< layer; i++){
           // nestedDepsObj = nestedDepsObj[name]["deps"];
@@ -144,18 +142,22 @@ const modifiedTree = {
             `prop ${name} alr E: `,
             nestedDepsObj.hasOwnProperty(name)
           );
-          if (!nestedDepsObj.hasOwnProperty(name)) {
-            Object.defineProperty(nestedDepsObj, name, {
-              value: new LibNode(name, version, {}),
-              writable: false, //Err: false
-              // writable: true,  //Err: false
-              configurable: false,
-              enumerable: true,
-            });
-          }
+          // if (!nestedDepsObj.hasOwnProperty(name)) {
+          Object.defineProperty(nestedDepsObj, name, {
+            value: new LibNode(name, version, {}),
+            // writable: false, //Err: false
+            writable: true, //Err: false
+            configurable: false,
+            enumerable: true,
+          });
+          // }
           //   nestedDepsObj[name] = new LibNode(name, version, {});
 
-          await addNodes(nestedDepsObj, outerName);
+          console.log(i++, outerName, " | ", name);
+          console.log({ nestedDepsObj });
+          // console.log(JSON.stringify(nestedDepsObj, null, 2));
+          await addNodes(nestedDepsObj, idx + 1);
+          // await addNodes(nestedDepsObj[name]["deps"]);
         }
       }
     }
