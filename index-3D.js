@@ -104,7 +104,7 @@ const modifiedTree = {
   let i = 1;
   await addNodes(depsObj_1);
 
-  async function addNodes(outerDeps, idx = 1) {
+  async function addNodes(outerDeps, layer = 1) {
     for (const dep in outerDeps) {
       const outerName = dep;
       const outerVersion = outerDeps[dep].version;
@@ -112,52 +112,43 @@ const modifiedTree = {
       //   await addNodes(name, version, depsObj_1);
 
       const apiDeps = await asyncGetDep(outerName, outerVersion);
+      console.log("layer before add: ", layer);
       if (
         Object.keys(apiDeps).length === 0 ||
-        Object.keys(apiDeps).length ===
-          Object.keys(outerDeps[outerName]["deps"]).length
+        //  ||       Object.keys(apiDeps).length ===
+        layer === Object.keys(outerDeps[outerName]["deps"]).length
       ) {
         console.log("2nd 0 deps");
-        // break
-        // return
+    
         continue;
       } else {
-        console.log({ apiDeps });
+        // console.log({ apiDeps });
 
         for (const innerDep in apiDeps) {
           const name = innerDep;
           const version = apiDeps[innerDep];
 
-          //   let n estedDepsObj = depsObj[name]["deps"]
           const nestedDepsObj = outerDeps[outerName]["deps"];
+
           // !!layer nu need cuz nestedDepsObj travers the nested layers
-          // for(let i = 0; i< layer; i++){
-          // nestedDepsObj = nestedDepsObj[name]["deps"];
-
-          // }
-
-          //   nestedDepsObj = nestedDepsObj[name]["deps"]
+          // BUT layer needed to check traversal when recursive goes back to parent call
 
           console.log(
             `prop ${name} alr E: `,
             nestedDepsObj.hasOwnProperty(name)
           );
-          // if (!nestedDepsObj.hasOwnProperty(name)) {
           Object.defineProperty(nestedDepsObj, name, {
             value: new LibNode(name, version, {}),
-            // writable: false, //Err: false
-            writable: true, //Err: false
+            writable: false, //can be false - nu longer retraversed
             configurable: false,
             enumerable: true,
           });
-          // }
-          //   nestedDepsObj[name] = new LibNode(name, version, {});
-
-          console.log(i++, outerName, " | ", name);
+          
+          console.log(i++, outerName, " | ", name, );
           console.log({ nestedDepsObj });
+
           // console.log(JSON.stringify(nestedDepsObj, null, 2));
-          await addNodes(nestedDepsObj, idx + 1);
-          // await addNodes(nestedDepsObj[name]["deps"]);
+          await addNodes(nestedDepsObj, layer + 1);
         }
       }
     }
