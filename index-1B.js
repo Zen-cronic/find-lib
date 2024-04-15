@@ -2,7 +2,6 @@
 
 const https = require("https");
 
-const axios = require("axios").default;
 
 /**
  * @typedef {Object} Options

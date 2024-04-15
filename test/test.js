@@ -102,7 +102,7 @@ const { Logger } = require("scope-logger");
           name: "which",
         },
       },
-      version: "3.2.4",
+      version: "7.0.3",
       name: "cross-spawn",
     },
     ttlDeps: 11,
