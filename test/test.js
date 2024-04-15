@@ -105,12 +105,15 @@ const { Logger } = require("scope-logger");
       version: "3.2.4",
       name: "cross-spawn",
     },
+    ttlDeps: 11,
+    layers: 3,
+    firstLayer: 3
   };
   const expected = JSON.stringify(modifiedTree);
   // const { logBody } = logger.log({ expected });
 
   //JSON.stringified has no colourcode, whitespace, no \n
-  // console.log({expected});
+  console.log({expected});
 
   // console.log({logBody}); // \n and whitespace and lowercase
 
@@ -119,7 +122,7 @@ const { Logger } = require("scope-logger");
   // const formattedResultPromise = resultPromise.replace(/(\n+)(\s{1,})/g, "").toLowerCase()
   const formattedResultPromise = resultPromise
     .replace(/[\n\s]/g, "")
-    .toLowerCase();
+    // .toLowerCase();
   console.log({ formattedResultPromise });
 
   // if(formattedResultPromise.includes(expected)){

@@ -5,37 +5,55 @@
 class LibTree {
   constructor(rootName, rootVersion) {
     this.root = new LibNode(rootName, rootVersion);
+    this.ttlDeps = 0;
+    this.layers = 0;
+    this.firstLayer = 0;
   }
 
   /**
    * @param {LibNode} [node=this.root]
+   * @param {number} [layer=0]
    * @returns {Promise<void>}
    */
-  async addNodes(node = this.root) {
-    //this.root ALWAYS sent as first node
+  async addNodes(node = this.root, layer = 0) {
+    //this.root ALWAYS set as first node
     let currentNode = node;
 
     const apiDeps = await asyncGetDep(currentNode.name, currentNode.version);
+
+    const apiDepsLen = Object.keys(apiDeps).length;
+
+    //deps count
+    if (apiDepsLen) {
+      this.layers = layer + 1;
+    }
+
+    //1st layer
+    if (layer === 0) {
+      this.firstLayer = apiDepsLen;
+    }
 
     for (const dep in apiDeps) {
       const name = dep;
       const version = apiDeps[dep];
 
-      const nestedDepsObj = currentNode["deps"];
+      const nestedDeps = currentNode["deps"];
 
       //dev check
-      if (nestedDepsObj.hasOwnProperty(name)) {
+      if (nestedDeps.hasOwnProperty(name)) {
         throw new Error("Traversed more than once!");
       }
 
-      Object.defineProperty(nestedDepsObj, name, {
+      Object.defineProperty(nestedDeps, name, {
         value: new LibNode(name, version),
         writable: false,
         configurable: false,
         enumerable: true,
       });
 
-      await this.addNodes(nestedDepsObj[name]);
+      this.ttlDeps++;
+
+      await this.addNodes(nestedDeps[name], layer + 1);
     }
   }
 }
@@ -115,15 +133,23 @@ const modifiedTree = {
     version: "3.2.4",
     name: "cross-spawn",
   },
+  ttlDeps: 11,
+  layers: 3,
+  firstLayer: 3,
 };
 
 (async () => {
   const crossSpawnTree = new LibTree("cross-spawn", "3.2.4");
+  //   const crossSpawnTree = new LibTree("scope-logger", "1.1.0");
+  // const crossSpawnTree = new LibTree("debug", "1.1.0");
+  //   const crossSpawnTree = new LibTree("easy-dep-graph", "1.1.0");
 
   console.log({ crossSpawnTree });
+  console.log("ttlDeps b4: ", crossSpawnTree.ttlDeps);
 
   //   console.log("root", crossSpawnTree.root);
   await crossSpawnTree.addNodes();
+  console.log("ttlDeps aft: ", crossSpawnTree.ttlDeps);
 
   console.log("------------\n\n" + "Nodes-added tree:\n");
   console.log(JSON.stringify(crossSpawnTree, null, 2));
@@ -187,6 +213,27 @@ async function asyncGetDep(name, version) {
         // extreme: "10.0.0",
       };
 
+      break;
+
+    //0 layer , 0 deps
+    case "scope-logger":
+      break;
+
+    //1 layer , 1 dep
+    case "debug":
+      deps = {
+        ms: "4.3.4",
+      };
+      break;
+
+    //1 layer, 4 dep in 1st
+    case "easy-dep-graph":
+      deps = {
+        fastify: "10.0.0",
+        mustache: "2.0.0",
+        open: "3.0.0",
+        shelljs: "4.0.0",
+      };
       break;
   }
 
