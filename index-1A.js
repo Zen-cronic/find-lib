@@ -23,6 +23,8 @@ async function main() {
       );
     }
 
+    
+
     //curl https://registry.npmjs.org/-/v1/search?text=${searchQuery}
     //curl https://registry.npmjs.org/node-libcurl
 
@@ -133,7 +135,7 @@ async function main() {
     checkDepsExist(deps);
 
     //if nu {}, undefined and hard to debug
-    return {deps};
+    return { deps };
   }
 
   function checkDepsExist(o) {
