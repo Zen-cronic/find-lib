@@ -37,10 +37,11 @@ async function findModules(searchQuery, options) {
 
     return response.data;
   } catch (error) {
+    //ltr: handle customError
     throw new Error(error);
   }
 
-  //curl https://registry.npmjs.org/-/v1/search?text=${searchQuery}
+  //curl "https://registry.npmjs.org/-/v1/search?text="
 
   //   return response.data;
 }
@@ -63,40 +64,53 @@ async function findOneModule(name, version) {
     return data;
   } catch (error) {
     if (error.response.status === 404) {
-      console.error("Package Not found with version");
+      // if (error.status === 404) {
+      // console.error("Package Not found with version");
+
+      error.message = `Package "${name}" Not found with version "${version}"`;
     }
 
-    return error;
+    // return error;
+    // throw new Error(error);
+    throw error;
   }
 }
 
 /**
  * @param {string} name
  * @param {string} version
- * @returns {Promise<"Error from findOneModule" | {deps: Object}>}
+ * @returns {Promise<Object>}
  */
 async function getDeps(name, version) {
-  if (typeof name !== "string" || typeof version !== "string") {
-    throw new TypeError("name & version must be of type string");
+  try {
+    if (typeof name !== "string" || typeof version !== "string") {
+      throw new TypeError("name & version must be of type string");
+    }
+    const module = await findOneModule(name, version);
+
+    let deps = module["dependencies"];
+
+    const depsExist = hasDeps(deps);
+
+    //if nu {}, undefined and hard to debug
+
+    if (!depsExist) {
+      deps = {};
+    }
+
+    //parse Version
+    else {
+      deps = parseVersion(deps);
+    }
+
+    return deps;
+  } catch (error) {
+    //error findOneModule
+    console.error(
+      `Error getting dependencies for ${name}@${version}: ${error.message}`
+    );
+    throw error; // if to be handled by higher levels
   }
-
-  const module = await findOneModule(name, version);
-
-  if (module instanceof Error) {
-    return "Error from findOneModule";
-  }
-
-  let deps = module["dependencies"];
-
-  const depsExist = hasDeps(deps);
-
-  //if nu {}, undefined and hard to debug
-
-  if (!depsExist) {
-    deps = {};
-  }
-
-  return deps;
 }
 
 function hasDeps(o) {
@@ -149,6 +163,20 @@ async function customFetch(url) {
         // statusText
         // }
 
+        if (res.statusCode === 404) {
+          //customError
+          const error = new Error();
+          error.name = "CustomFetchError";
+
+          error.response = {
+            data: res.statusMessage,
+            headers: res.headers,
+            status: res.statusCode,
+            statusText: res.statusMessage,
+          };
+          reject(error);
+        }
+
         const resolvedO = {
           data: result, //str later obj
           headers: res.headers,
@@ -180,9 +208,26 @@ async function customFetch(url) {
   return resultO;
 }
 
+/**
+ * @typedef {Object.<string, string>} ApiDeps
+ */
+
+/**
+ *
+ * @param {ApiDeps}  apiDeps
+ */
+function parseVersion(apiDeps) {
+  const o = { ...apiDeps };
+
+  for (const dep in o) {
+    o[dep] = o[dep].replace("^", "");
+  }
+
+  return o;
+}
 async function main() {
-  // const foundModules = await findModules("cross-spawn", { size: 1 });
-  const foundModules = await findModules("easy-dep-graph", { size: 1 });
+  const foundModules = await findModules("cross-spawn", { size: 1 });
+  // const foundModules = await findModules("easy-dep-graph", { size: 1 });
 
   //if foundModules.objects.total !== provided => nth found?
 
@@ -194,13 +239,12 @@ async function main() {
     //create tree for each package
 
     const tree = new LibTree(module.package.name, module.package.version);
-    // console.log(
-    //   "name and version of each module: ",
-    //   module.package.name,
-    //   module.package.version
-    // );
-    await tree.addNodes();
-    console.log("Nodes-added tree: ", JSON.stringify(tree, null, 2));
+    // const tree = new LibTree(module.package.name, "10.0.1");
+
+    await tree.addNodes().then((t) => {
+      console.log("Nodes-added tree: ", JSON.stringify(t, null, 2));
+    });
+    // console.log("Nodes-added tree: ", JSON.stringify(tree, null, 2));
   }
 }
 
@@ -224,6 +268,7 @@ class LibTree {
     let currentNode = node;
 
     const apiDeps = await getDeps(currentNode.name, currentNode.version);
+    // const apiDeps = await getDeps(currentNode.name, "10.20.1");   //version not found
 
     const apiDepsLen = Object.keys(apiDeps).length;
 
@@ -239,7 +284,7 @@ class LibTree {
 
     for (const dep in apiDeps) {
       const name = dep;
-      const version = apiDeps[dep].replace("^", "");
+      const version = apiDeps[dep];
 
       const nestedDeps = currentNode["deps"];
 
@@ -259,6 +304,9 @@ class LibTree {
 
       await this.addNodes(nestedDeps[name], layer + 1);
     }
+
+    // return currentNode
+    return this;
   }
 }
 
@@ -269,89 +317,4 @@ class LibNode {
     this.version = version;
     this.name = name;
   }
-}
-
-/**
- *
- * @param {string} name
- * @param {string} version
- */
-async function asyncGetDep(name, version) {
-  //customFetch /name/version
-
-  let deps = {};
-  switch (name) {
-    //0th layer:
-    case "cross-spawn":
-      deps = {
-        "path-key": "1.0.0",
-        "shebang-command": "2.0.0",
-        which: "3.0.1",
-      };
-
-      break;
-
-    //1st layers
-    case "path-key":
-      //nu dep
-
-      break;
-    case "shebang-command":
-      deps = {
-        "regex-extra": "5.0.0",
-        "shebang-regex": "1.0.0",
-      };
-      break;
-    case "which":
-      deps = {
-        isexe: "2.4.5",
-        "another-isexe": "5.4.2",
-      };
-      break;
-
-    //2nd layers
-
-    case "isexe":
-      deps = {
-        is: "0.0.1",
-        exe: "0.2.0",
-      };
-      break;
-
-    case "another-isexe":
-      //nu dep
-      break;
-
-    case "regex-extra":
-      deps = {
-        regex: "12.0.0",
-        extra: "10.0.0",
-        // extreme: "10.0.0",
-      };
-
-      break;
-
-    //0 layer , 0 deps
-    case "scope-logger":
-      break;
-
-    //1 layer , 1 dep
-    case "debug":
-      deps = {
-        ms: "4.3.4",
-      };
-      break;
-
-    //1 layer, 4 dep in 1st
-    case "easy-dep-graph":
-      deps = {
-        fastify: "10.0.0",
-        mustache: "2.0.0",
-        open: "3.0.0",
-        shelljs: "4.0.0",
-      };
-      break;
-  }
-
-  return deps;
 }
