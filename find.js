@@ -6,6 +6,8 @@ const { Logger } = require("scope-logger");
 
 const logger = new Logger("Fns");
 
+// logger.disabled = true
+
 module.exports = { getDeps, findModules };
 /**
  * @typedef {Object} SearchOptions
@@ -16,18 +18,18 @@ module.exports = { getDeps, findModules };
 /**
  *
  * @param {string} searchQuery
- * @param {SearchOptions} [options]
+ * @param {SearchOptions} searchOpts
  * @returns
  */
-async function findModules(searchQuery, options) {
+async function findModules(searchQuery, searchOpts ) {
   let searchSize;
   let searchFrom;
   let response;
 
   try {
-    if (options) {
-      searchSize = options.size;
-      searchFrom = options.from;
+    if (searchOpts) {
+      searchSize = searchOpts.size;
+      searchFrom = searchOpts.from;
 
       response = await customFetch(
         `https://registry.npmjs.org/-/v1/search?text=${searchQuery}&size=${searchSize}&size=${searchFrom}`
@@ -85,8 +87,8 @@ async function findOneModule(name, version) {
  * @returns {Promise<Object>}
  */
 async function getDeps(name, version) {
-  logger.log({ name });
-  logger.log({ version });
+//   logger.log({ name });
+//   logger.log({ version });
   try {
     if (typeof name !== "string" || typeof version !== "string") {
       throw new TypeError("name & version must be of type string");
@@ -120,7 +122,7 @@ async function getDeps(name, version) {
 
 function hasDeps(o) {
   if (!o) {
-    console.log("0 dependencies");
+    // console.log("0 dependencies");
     return false;
   }
   return true;
@@ -153,7 +155,7 @@ async function customFetch(url) {
     throw new TypeError("URL must be of type string");
   }
 
-  logger.log({ url });
+//   logger.log({ url });
 
   const resultO = await new Promise((resolve, reject) => {
     const req = https.request(url, (res) => {
@@ -227,7 +229,7 @@ async function customFetch(url) {
 function parseVersion(apiDeps) {
   const o = { ...apiDeps };
 
-  logger.log({ o });
+//   logger.log({ o });
 
   for (const dep in o) {
     o[dep] = o[dep].replace(/[~^v\s]/g, ""); 
