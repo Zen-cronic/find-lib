@@ -10,8 +10,8 @@
     "CHANGELOG.md"
   ],
   "scripts": {
-    "test": "jest --watchAll",
-    "dev": "node --watch"
+    "test:w": "jest --watchAll",
+    "test": "jest"
   },
   "keywords": [
     "library",
@@ -22,7 +22,7 @@
   ],
   "devDependencies": {
     "jest": "^29.7.0",
-    "jest-to-log": "^1.0.1",
+    "jest-to-log": "^1.1.0",
     "nyc": "^17.0.0",
     "scope-logger": "^1.3.0"
   }
