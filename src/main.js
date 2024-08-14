@@ -1,7 +1,7 @@
-const { DepTree } = require("./Dep");
-const { findModules, findOneModule } = require("./finder");
+const { DepTree } = require("./Dep.js");
+const { findModules, findOneModule } = require("./finder.js");
 
-module.exports = {findLib};
+module.exports = { findLib };
 
 /**
  * @typedef {import('./js-doc.js').DepOptions} DepOptions
@@ -13,9 +13,7 @@ module.exports = {findLib};
 /**
  *
  * @param {string} searchQuery
-//  * @param {Object} [searchOpts]
-//  * @param {DepOptions} [depOpts]
- * @param {FindOptions} [findOpts] 
+ * @param {FindOptions} [findOpts]
  */
 async function findLib(searchQuery, findOpts) {
   let foundModules;
@@ -24,7 +22,6 @@ async function findLib(searchQuery, findOpts) {
   // "dist-tags": {lastest: "x.y.z" }
   if (findOpts === undefined) {
     foundModules = await findOneModule(searchQuery);
-
   } else {
     // findModules("cross-spawn", { size: 1 });
     const { size = 1 } = findOpts;
@@ -72,11 +69,10 @@ async function findLib(searchQuery, findOpts) {
         depOpts
       );
 
-      await tree.addNodes(); 
+      await tree.addNodes();
 
       //false if passes depOpts
       if (!tree.earlyReturn) {
-        console.log("Nodes-added tree: ", JSON.stringify(tree, null, 2));
         process.stderr.write(JSON.stringify(tree, null, 2));
       } else {
         process.stderr.write("depOpts option failed");

@@ -1,6 +1,6 @@
 require("jest-to-log");
 const { describe, it, expect } = require("@jest/globals");
-const { findLib } = require("../../lib/index");
+const { findLib } = require("../../src/index");
 
 describe("findLib", () => {
   describe("given that a valid search is made", () => {
@@ -52,7 +52,7 @@ describe("findLib", () => {
 
       await expect(testFn).toLogStderr(expectedTree);
     });
-    it.only("should display the correct tree structure without any find options", async () => {
+    it("should display the correct tree structure without any find options", async () => {
       const testFn = async () => {
         await findLib("cross-spawn");
       };

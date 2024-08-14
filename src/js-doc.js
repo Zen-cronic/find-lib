@@ -5,7 +5,7 @@
 
 /**
  * @typedef {Object} TtlDepsOptions
- * @property {number} ttlDeps - The total dependencies of a lib, including nested.
+ * @property {number} ttlDeps - The total dependencies of a lib, including nested dependencies.
  */
 
 /**

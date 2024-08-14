@@ -1,4 +1,4 @@
-const { getDeps } = require("./finder");
+const { getDeps } = require("./finder.js");
 
 /**
  * @typedef {import('./js-doc.js').DepOptions} DepOptions
