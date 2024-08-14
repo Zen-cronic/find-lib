@@ -8,10 +8,10 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-      - name: Use Node.js Version 14
+      - name: Use Node.js Version 16
         uses: actions/setup-node@v4
         with:
-          node-version: 14
+          node-version: 16
 
       - name: Install Node.js dependencies
         run: npm install
