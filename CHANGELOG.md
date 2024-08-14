@@ -10,6 +10,8 @@
 
 - Updated to stable release
 - Updated: migrate tests to [jest-to-log](https://github.com/Zen-cronic/jest-to-log)
+- Added: Type declaration file
+- Added: GitHub Actions CI/CD
 
 ## Unstable releases
 
