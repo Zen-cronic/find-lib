@@ -1,15 +1,14 @@
-const { setupTest } = require("../../utils/testHelper");
+require("jest-to-log");
+const { describe, it, expect } = require("@jest/globals");
+const { findLib } = require("../../lib/index");
 
 describe("findLib", () => {
-  const { createMessagePromise, createWorkerDataPromise } = setupTest(
-    "e2e",
-    "test.process.js"
-  );
-
-  describe("given", () => {
+  describe("given that a valid search is made", () => {
     it("should display the correct tree structure", async () => {
-      const workerData = await createWorkerDataPromise();
 
+      const testFn = async () => {
+        await findLib("cross-spawn", { size: 1 });
+      };
       const tree = {
         root: {
           deps: {
@@ -50,10 +49,9 @@ describe("findLib", () => {
         _opts: {},
         earlyReturn: false,
       };
-      const expected = JSON.stringify(tree, null, 2);
-    //   expect(workerData).toBe(expected );
-    console.log(workerData);
-      expect(true).toBe(true );
+      const expectedTree = JSON.stringify(tree, null, 2);
+
+      expect(testFn).toLogStdout(expectedTree);
     });
   });
 });
